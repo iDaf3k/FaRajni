@@ -1,0 +1,55 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <AssemblyName>FaRajni</AssemblyName>
+    <RootNamespace>FaRajni.App</RootNamespace>
+    <ApplicationIcon>Resources\icon.ico</ApplicationIcon>
+    <Product>FaRajni</Product>
+    <AssemblyTitle>FaRajni</AssemblyTitle>
+    <Company>iDaf</Company>
+    <Version>1.0.3</Version>
+    <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
+    <!-- Startup: precompiled code + no JIT warm-up wait for the common paths. -->
+    <TieredPGO>true</TieredPGO>
+    <!-- x64 only: don't copy the 32-bit / ARM VLC builds. -->
+    <VlcWindowsX86Enabled>false</VlcWindowsX86Enabled>
+    <VlcWindowsArm64Enabled>false</VlcWindowsArm64Enabled>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FaRajni.Core\FaRajni.Core.csproj" />
+    <!-- The editor is a separate assembly; nothing on the startup path touches its types,
+         so the CLR only loads it the first time the user opens Edit or Merge. -->
+    <ProjectReference Include="..\FaRajni.Editor\FaRajni.Editor.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="LibVLCSharp" Version="3.10.1" />
+    <PackageReference Include="LibVLCSharp.WPF" Version="3.10.1" />
+    <PackageReference Include="VideoLAN.LibVLC.Windows" Version="3.0.23.1" />
+    <PackageReference Include="VirtualizingWrapPanel" Version="2.5.4" />
+  </ItemGroup>
+
+  <!-- Ship only the VLC parts a local player needs (no streaming-out, scripting,
+       visualizations, network discovery, muxers). -->
+  <ItemGroup>
+    <VlcWindowsX64IncludeFiles Include="libvlc.dll;libvlccore.dll;hrtfs\%2A%2A;plugins\%2A%2A" />
+    <VlcWindowsX64ExcludeFiles Include="plugins\lua\%2A%2A;plugins\stream_out\%2A%2A;plugins\access_output\%2A%2A;plugins\mux\%2A%2A;plugins\visualization\%2A%2A;plugins\services_discovery\%2A%2A;plugins\video_splitter\%2A%2A;plugins\keystore\%2A%2A;plugins\meta_engine\%2A%2A" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Resources\icon.ico" />
+    <Resource Include="Resources\Fonts\*.ttf" />
+    <None Include="Resources\Fonts\Geist-OFL.txt" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="System.IO" />
+  </ItemGroup>
+
+</Project>

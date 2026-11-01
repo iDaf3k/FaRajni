@@ -1,0 +1,15 @@
+# Build output
+bin/
+out/
+obj/
+
+# IDE / user files
+.vs/
+.idea/
+.vscode/
+*.user
+*.suo
+
+# Test results
+TestResults/
+*.trx

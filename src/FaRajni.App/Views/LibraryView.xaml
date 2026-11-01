@@ -1,0 +1,389 @@
+<UserControl x:Class="FaRajni.App.Views.LibraryView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vwp="clr-namespace:WpfToolkit.Controls;assembly=VirtualizingWrapPanel">
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="Vis"/>
+    </UserControl.Resources>
+
+    <Grid Margin="12">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="256"/>
+            <ColumnDefinition Width="12"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- ======================= Sidebar ======================= -->
+        <Border Style="{StaticResource GlassPanel}" CornerRadius="22" Padding="12,18,12,14">
+            <DockPanel LastChildFill="True">
+                <!-- brand -->
+                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="8,0,0,18">
+                    <Border Width="28" Height="28" CornerRadius="9" Background="{StaticResource AccentBrush}">
+                        <TextBlock Style="{StaticResource Icon}" Text="&#xE768;" FontSize="13" Foreground="White"/>
+                    </Border>
+                    <TextBlock Text="FaRajni" FontWeight="SemiBold" FontSize="15" Margin="10,0,0,0" VerticalAlignment="Center"/>
+                    <Border Background="#12FFFFFF" CornerRadius="6" Padding="6,1" Margin="8,0,0,0" VerticalAlignment="Center">
+                        <TextBlock Text="lite" Style="{StaticResource Mono}" FontSize="10" Foreground="{StaticResource MutedBrush}"/>
+                    </Border>
+                </StackPanel>
+
+                <!-- nav -->
+                <Button DockPanel.Dock="Top" Click="AllVideos_Click" Height="40" Padding="10,0" HorizontalContentAlignment="Stretch">
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource BtnBase}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsAllVideos}" Value="True">
+                                    <Setter Property="Background" Value="{StaticResource ActiveBrush}"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Style="{StaticResource Icon}" Text="&#xE8B2;" FontSize="17">
+                            <TextBlock.Foreground>
+                                <SolidColorBrush Color="#9499A8"/>
+                            </TextBlock.Foreground>
+                        </TextBlock>
+                        <TextBlock Grid.Column="1" Text="All videos" FontSize="14" FontWeight="Medium" Margin="10,0,0,0" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Column="2" Text="{Binding AllCount}" Style="{StaticResource Mono}" FontSize="11"
+                                   Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center"/>
+                    </Grid>
+                </Button>
+
+                <!-- folders header -->
+                <Grid DockPanel.Dock="Top" Margin="10,18,4,6">
+                    <TextBlock Text="FOLDERS" Style="{StaticResource SectionLabel}" VerticalAlignment="Center"/>
+                    <Button Style="{StaticResource IconBtn}" HorizontalAlignment="Right" Background="#12FFFFFF"
+                            ToolTip="Add folder" Click="AddFolder_Click">
+                        <TextBlock Style="{StaticResource Icon}" Text="&#xE710;" FontSize="13"/>
+                    </Button>
+                </Grid>
+
+                <!-- footer -->
+                <Grid DockPanel.Dock="Bottom" Margin="0,10,0,0">
+                    <Border Background="#0AFFFFFF" CornerRadius="12" Padding="10,9" Margin="0,0,36,0">
+                        <StackPanel Orientation="Horizontal">
+                            <Ellipse x:Name="FfmpegDot" Width="7" Height="7" Fill="{StaticResource OkBrush}" VerticalAlignment="Center"/>
+                            <TextBlock x:Name="FfmpegText" Text="Editing ready" FontSize="12" Foreground="{StaticResource MutedBrush}"
+                                       Margin="8,0,0,0" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                        </StackPanel>
+                    </Border>
+                    <Button x:Name="MoreBtn" Style="{StaticResource IconBtn}" Width="32" Height="32" HorizontalAlignment="Right"
+                            ToolTip="More" Click="More_Click">
+                        <TextBlock Style="{StaticResource Icon}" Text="&#xE712;" FontSize="15"/>
+                        <Button.ContextMenu>
+                            <ContextMenu Placement="Top">
+                                <MenuItem Header="Rescan all folders" Click="RescanAll_Click"/>
+                                <MenuItem Header="Import old For Za BoyZ library" Click="ImportLegacy_Click"/>
+                                <MenuItem Header="Make FaRajni the default video player" Click="DefaultPlayer_Click"/>
+                            </ContextMenu>
+                        </Button.ContextMenu>
+                    </Button>
+                </Grid>
+
+                <!-- folder list -->
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <ItemsControl ItemsSource="{Binding Folders}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border x:Name="Row" CornerRadius="11" Padding="10,7,6,7" Margin="0,0,0,2" Cursor="Hand"
+                                        Background="Transparent" MouseLeftButtonUp="FolderRow_Click">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock x:Name="FIcon" Style="{StaticResource Icon}" Text="{Binding Icon}" FontSize="17"
+                                                   Foreground="{StaticResource MutedBrush}" Opacity="{Binding ContentOpacity}"/>
+                                        <StackPanel Grid.Column="1" Margin="10,0,4,0" Opacity="{Binding ContentOpacity}">
+                                            <TextBlock Text="{Binding Name}" FontSize="13.5" FontWeight="Medium" TextTrimming="CharacterEllipsis"/>
+                                            <TextBlock Text="{Binding Sub}" FontSize="11.5" Foreground="{StaticResource MutedBrush}" TextTrimming="CharacterEllipsis"/>
+                                        </StackPanel>
+                                        <Button Grid.Column="2" Style="{StaticResource IconBtn}" ToolTip="{Binding EyeTip}" Click="FolderEye_Click">
+                                            <TextBlock Style="{StaticResource Icon}" Text="{Binding EyeIcon}" FontSize="14"/>
+                                        </Button>
+                                        <Button Grid.Column="3" Style="{StaticResource IconBtn}" ToolTip="Folder settings" Click="FolderSettings_Click">
+                                            <TextBlock Style="{StaticResource Icon}" Text="&#xE9E9;" FontSize="14"/>
+                                        </Button>
+                                    </Grid>
+                                </Border>
+                                <DataTemplate.Triggers>
+                                    <Trigger SourceName="Row" Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="Row" Property="Background" Value="#0DFFFFFF"/>
+                                    </Trigger>
+                                    <DataTrigger Binding="{Binding IsActive}" Value="True">
+                                        <Setter TargetName="Row" Property="Background" Value="{StaticResource ActiveBrush}"/>
+                                        <Setter TargetName="FIcon" Property="Foreground" Value="{StaticResource AccentTextBrush}"/>
+                                    </DataTrigger>
+                                </DataTemplate.Triggers>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </DockPanel>
+        </Border>
+
+        <!-- ======================= Main ======================= -->
+        <Grid Grid.Column="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- header -->
+            <Border Style="{StaticResource GlassPanel}" Padding="20,10,12,10">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel VerticalAlignment="Center" Margin="0,0,12,0">
+                        <TextBlock Text="{Binding ViewTitle}" FontSize="19" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                        <TextBlock Text="{Binding ViewSub}" FontSize="12" Foreground="{StaticResource MutedBrush}" TextTrimming="CharacterEllipsis">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding ViewSubIsPath}" Value="True">
+                                            <Setter Property="FontFamily" Value="{StaticResource MonoFont}"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </StackPanel>
+
+                    <Border Grid.Column="1" Width="240" Height="38" CornerRadius="12" Background="{StaticResource FieldBrush}"
+                            BorderBrush="{StaticResource GlassEdgeBrush}" BorderThickness="1" Padding="12,0" Margin="0,0,10,0">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Style="{StaticResource Icon}" Text="&#xE721;" FontSize="14" Foreground="{StaticResource MutedBrush}"/>
+                            <TextBlock Grid.Column="1" Text="Search videos" Margin="10,0,0,0" VerticalAlignment="Center" FontSize="14"
+                                       Foreground="{StaticResource FaintBrush}" IsHitTestVisible="False"
+                                       Visibility="{Binding Text.IsEmpty, ElementName=SearchBox, Converter={StaticResource Vis}}"/>
+                            <TextBox x:Name="SearchBox" Grid.Column="1" Margin="8,0,0,0" Style="{StaticResource BareTextBox}"
+                                     Text="{Binding Search, UpdateSourceTrigger=PropertyChanged}"/>
+                        </Grid>
+                    </Border>
+
+                    <Button x:Name="SortBtn" Grid.Column="2" Style="{StaticResource GlassBtn}" Margin="0,0,10,0" Click="Sort_Click" Padding="12,0,10,0">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Style="{StaticResource Icon}" Text="&#xE8CB;" FontSize="14"/>
+                            <TextBlock Text="{Binding SortLabel}" Margin="8,0,6,0" VerticalAlignment="Center"/>
+                            <TextBlock Style="{StaticResource Icon}" Text="&#xE70D;" FontSize="10" Foreground="{StaticResource MutedBrush}"/>
+                        </StackPanel>
+                        <Button.ContextMenu>
+                            <ContextMenu x:Name="SortMenu" Placement="Bottom">
+                                <MenuItem Header="Name A–Z" Tag="Name" Click="SortItem_Click"/>
+                                <MenuItem Header="Date added" Tag="RecentlyAdded" Click="SortItem_Click"/>
+                                <MenuItem Header="Recorded newest" Tag="RecordedNewest" Click="SortItem_Click"/>
+                                <MenuItem Header="Recorded oldest" Tag="RecordedOldest" Click="SortItem_Click"/>
+                                <MenuItem Header="Longest first" Tag="Longest" Click="SortItem_Click"/>
+                            </ContextMenu>
+                        </Button.ContextMenu>
+                    </Button>
+
+                    <!-- thumbnail size -->
+                    <Border Grid.Column="3" Height="38" CornerRadius="12" Background="{StaticResource FieldBrush}"
+                            BorderBrush="{StaticResource GlassEdgeBrush}" BorderThickness="1" Padding="12,0" Margin="0,0,10,0"
+                            ToolTip="Thumbnail size">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Style="{StaticResource Icon}" Text="&#xE8A9;" FontSize="11" Foreground="{StaticResource MutedBrush}"/>
+                            <Slider Width="96" Minimum="150" Maximum="360" Margin="8,0" VerticalAlignment="Center"
+                                    Value="{Binding TileSize, Mode=TwoWay}"/>
+                            <TextBlock Style="{StaticResource Icon}" Text="&#xE80A;" FontSize="15" Foreground="{StaticResource MutedBrush}"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Button Grid.Column="4" Click="Dupes_Click" ToolTip="Hide identical duplicate files">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource GlassBtn}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding HideDuplicates}" Value="True">
+                                        <Setter Property="Background" Value="{StaticResource AccentTintBrush}"/>
+                                        <Setter Property="BorderBrush" Value="#735089F2"/>
+                                        <Setter Property="Foreground" Value="{StaticResource AccentTextBrush}"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Style="{StaticResource Icon}" Text="&#xE8C8;" FontSize="14"/>
+                            <TextBlock Text="Hide duplicates" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                </Grid>
+            </Border>
+
+            <!-- hidden-folder notice -->
+            <Border Grid.Row="1" Margin="8,14,8,0" CornerRadius="14" Background="#0EFFFFFF" BorderBrush="{StaticResource GlassEdgeBrush}"
+                    BorderThickness="1" Padding="14,8,8,8" Visibility="{Binding ShowHiddenNotice, Converter={StaticResource Vis}}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Style="{StaticResource Icon}" Text="&#xED1A;" FontSize="15" Foreground="{StaticResource Ink2Brush}"/>
+                    <TextBlock Grid.Column="1" Margin="10,0" VerticalAlignment="Center" FontSize="13" Foreground="{StaticResource Ink2Brush}"
+                               Text="This folder is hidden. Its videos don't appear in All videos or search."/>
+                    <Button Grid.Column="2" Style="{StaticResource SubtleBtn}" Height="30" Content="Show in library" FontSize="13" Click="Unhide_Click"/>
+                </Grid>
+            </Border>
+
+            <!-- grid -->
+            <Grid Grid.Row="2" x:Name="GridHost" Margin="8,18,0,0">
+                <vwp:VirtualizingItemsControl x:Name="TileGrid" ItemsSource="{Binding Items}" Background="Transparent" BorderThickness="0"
+                                              ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                              ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                              VirtualizingPanel.CacheLengthUnit="Page" VirtualizingPanel.CacheLength="1"
+                                              VirtualizingPanel.ScrollUnit="Pixel"
+                                              SizeChanged="Grid_SizeChanged">
+                    <vwp:VirtualizingItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <vwp:VirtualizingWrapPanel SpacingMode="None" StretchItems="False"/>
+                        </ItemsPanelTemplate>
+                    </vwp:VirtualizingItemsControl.ItemsPanel>
+                    <vwp:VirtualizingItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Width="{Binding DataContext.TileWidth, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                        Margin="0,0,16,20" Background="Transparent"
+                                        MouseEnter="Tile_MouseEnter" MouseLeave="Tile_MouseLeave">
+                                <Grid x:Name="Thumb" Cursor="Hand" MouseLeftButtonUp="Tile_Click"
+                                      Height="{Binding DataContext.TileHeight, RelativeSource={RelativeSource AncestorType=UserControl}}">
+                                    <Border x:Name="Frame" CornerRadius="14" Background="{Binding Placeholder}"/>
+                                    <Border CornerRadius="14">
+                                        <Border.Background>
+                                            <ImageBrush ImageSource="{Binding Thumbnail}" Stretch="UniformToFill"/>
+                                        </Border.Background>
+                                    </Border>
+                                    <Border x:Name="Ring" CornerRadius="14" BorderThickness="0" BorderBrush="{StaticResource AccentBrush}"/>
+
+                                    <!-- select circle -->
+                                    <Button x:Name="CheckBtn" Click="TileCheck_Click" HorizontalAlignment="Left" VerticalAlignment="Top"
+                                            Margin="8" Width="26" Height="26" Cursor="Hand" ToolTip="Select"
+                                            Visibility="{Binding ShowCheck, Converter={StaticResource Vis}}">
+                                        <Button.Template>
+                                            <ControlTemplate TargetType="Button">
+                                                <Border x:Name="C" CornerRadius="13" BorderThickness="2" BorderBrush="#D9FFFFFF" Background="#4D000000">
+                                                    <TextBlock x:Name="M" Style="{StaticResource Icon}" Text="&#xE73E;" FontSize="12" Foreground="White" Visibility="Collapsed"/>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                                        <Setter TargetName="C" Property="Background" Value="{StaticResource AccentBrush}"/>
+                                                        <Setter TargetName="C" Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+                                                        <Setter TargetName="M" Property="Visibility" Value="Visible"/>
+                                                    </DataTrigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Button.Template>
+                                    </Button>
+
+                                    <!-- trash -->
+                                    <Button Click="TileTrash_Click" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="8"
+                                            Width="30" Height="30" Cursor="Hand" ToolTip="{Binding TrashTip}"
+                                            Visibility="{Binding ShowTrash, Converter={StaticResource Vis}}">
+                                        <Button.Template>
+                                            <ControlTemplate TargetType="Button">
+                                                <Border x:Name="B" CornerRadius="10" BorderThickness="1" BorderBrush="#24FFFFFF" Background="#8C0A0C16">
+                                                    <TextBlock Style="{StaticResource Icon}" Text="&#xE74D;" FontSize="14" Foreground="{StaticResource DangerTextBrush}"/>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter TargetName="B" Property="Background" Value="#CC0A0C16"/>
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Button.Template>
+                                    </Button>
+
+                                    <!-- duration -->
+                                    <Border HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="8" Padding="7,2,7,3"
+                                            CornerRadius="7" Background="#9914151F" Visibility="{Binding HasDuration, Converter={StaticResource Vis}}">
+                                        <TextBlock Text="{Binding DurationText}" Style="{StaticResource Mono}" FontSize="11" Foreground="White"/>
+                                    </Border>
+
+                                    <!-- resume progress -->
+                                    <Grid VerticalAlignment="Bottom" Height="3" Margin="10,0,10,1" Visibility="{Binding HasResume, Converter={StaticResource Vis}}">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="{Binding ResumeDone}"/>
+                                            <ColumnDefinition Width="{Binding ResumeRest}"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Border Grid.ColumnSpan="2" CornerRadius="1.5" Background="#33000000"/>
+                                        <Border CornerRadius="1.5" Background="{StaticResource AccentBrush}"/>
+                                    </Grid>
+                                </Grid>
+                                <TextBlock Text="{Binding Title}" FontSize="14" FontWeight="Medium" Margin="2,9,2,0" TextTrimming="CharacterEllipsis"/>
+                                <TextBlock Text="{Binding Meta}" FontSize="12" Foreground="{StaticResource MutedBrush}" Margin="2,2,2,0" TextTrimming="CharacterEllipsis"/>
+                            </StackPanel>
+                            <DataTemplate.Triggers>
+                                <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                    <Setter TargetName="Ring" Property="BorderThickness" Value="3"/>
+                                </DataTrigger>
+                                <Trigger SourceName="Thumb" Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="Thumb" Property="RenderTransform">
+                                        <Setter.Value>
+                                            <TranslateTransform Y="-2"/>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Trigger>
+                            </DataTemplate.Triggers>
+                        </DataTemplate>
+                    </vwp:VirtualizingItemsControl.ItemTemplate>
+                </vwp:VirtualizingItemsControl>
+
+                <!-- empty state -->
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,0,0,80"
+                            Visibility="{Binding IsEmpty, Converter={StaticResource Vis}}">
+                    <TextBlock Style="{StaticResource Icon}" Text="{Binding EmptyIcon}" FontSize="34" Foreground="{StaticResource FaintBrush}"/>
+                    <TextBlock Text="{Binding EmptyTitle}" FontSize="15" FontWeight="Medium" HorizontalAlignment="Center" Margin="0,12,0,4"/>
+                    <TextBlock Text="{Binding EmptySub}" FontSize="13" Foreground="{StaticResource MutedBrush}" HorizontalAlignment="Center"/>
+                    <Button Style="{StaticResource PrimaryBtn}" Content="Add a folder" HorizontalAlignment="Center" Margin="0,18,0,0"
+                            Click="AddFolder_Click" Visibility="{Binding EmptyShowsAdd, Converter={StaticResource Vis}}"/>
+                </StackPanel>
+
+                <!-- selection bar -->
+                <Border VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0,0,0,18" Padding="16,6,6,6"
+                        CornerRadius="16" Background="#EB141626" BorderBrush="#1FFFFFFF" BorderThickness="1"
+                        Effect="{StaticResource SoftShadow}"
+                        Visibility="{Binding HasSelection, Converter={StaticResource Vis}}">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock VerticalAlignment="Center" FontSize="13.5" FontWeight="Medium" Margin="0,0,14,0">
+                            <Run Text="{Binding SelectedCount, Mode=OneWay}"/><Run Text=" selected"/>
+                        </TextBlock>
+                        <Button Style="{StaticResource SubtleBtn}" Height="34" Margin="0,0,6,0" Click="Merge_Click"
+                                IsEnabled="{Binding CanMerge}" ToolTip="Join the selected videos into one file">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Style="{StaticResource Icon}" Text="&#xE71B;" FontSize="14"/>
+                                <TextBlock Text="Merge" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Style="{StaticResource BtnBase}" Height="34" Background="{StaticResource DangerTintBrush}"
+                                Foreground="{StaticResource DangerTextBrush}" Margin="0,0,6,0" Click="DeleteSelected_Click">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Style="{StaticResource Icon}" Text="&#xE74D;" FontSize="14"/>
+                                <TextBlock Text="Delete" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Style="{StaticResource IconBtn}" Width="34" Height="34" ToolTip="Clear selection (Esc)" Click="ClearSelection_Click">
+                            <TextBlock Style="{StaticResource Icon}" Text="&#xE711;" FontSize="13"/>
+                        </Button>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Grid>
+    </Grid>
+</UserControl>
